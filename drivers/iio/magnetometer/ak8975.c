@@ -604,27 +604,36 @@ static int ak8975_setup(struct i2c_client *client)
 	struct ak8975_data *data = iio_priv(indio_dev);
 	int ret;
 
-	/* Write the fused rom access mode. */
-	ret = ak8975_set_mode(data, FUSE_ROM);
-	if (ret < 0) {
-		dev_err(&client->dev, "Error in setting fuse access mode\n");
-		return ret;
-	}
+	if (data->def->type == AK09918) {
+		/*
+		 * The AK09918 has no sensitivity adjustment: the ASA registers
+		 * read back as 0xff, which would scale every axis 1.5 times too
+		 * high. Use the neutral value, for which the scale factor is 1.
+		 */
+		memset(data->asa, 128, sizeof(data->asa));
+	} else {
+		/* Write the fused rom access mode. */
+		ret = ak8975_set_mode(data, FUSE_ROM);
+		if (ret < 0) {
+			dev_err(&client->dev, "Error in setting fuse access mode\n");
+			return ret;
+		}
 
-	/* Get asa data and store in the device data. */
-	ret = i2c_smbus_read_i2c_block_data_or_emulated(
-			client, data->def->ctrl_regs[ASA_BASE],
-			3, data->asa);
-	if (ret < 0) {
-		dev_err(&client->dev, "Not able to read asa data\n");
-		return ret;
-	}
+		/* Get asa data and store in the device data. */
+		ret = i2c_smbus_read_i2c_block_data_or_emulated(
+				client, data->def->ctrl_regs[ASA_BASE],
+				3, data->asa);
+		if (ret < 0) {
+			dev_err(&client->dev, "Not able to read asa data\n");
+			return ret;
+		}
 
-	/* After reading fuse ROM data set power-down mode */
-	ret = ak8975_set_mode(data, POWER_DOWN);
-	if (ret < 0) {
-		dev_err(&client->dev, "Error in setting power-down mode\n");
-		return ret;
+		/* After reading fuse ROM data set power-down mode */
+		ret = ak8975_set_mode(data, POWER_DOWN);
+		if (ret < 0) {
+			dev_err(&client->dev, "Error in setting power-down mode\n");
+			return ret;
+		}
 	}
 
 	if (data->eoc_gpiod || client->irq > 0) {
