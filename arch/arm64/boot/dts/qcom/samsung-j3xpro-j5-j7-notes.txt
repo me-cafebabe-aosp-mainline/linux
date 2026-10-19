@@ -1,0 +1,44 @@
+Samsung Galaxy J3 Pro (SM-J3110/J3119), J5 (SM-J5008), J7 (SM-J7008), China
+===========================================================================
+
+DNM: bring-up notes, measured on real devices with a debug downstream 3.10
+kernel (J3 Pro Rev03, J5 Rev01, J7 Rev04). Not meant to be merged.
+
+Boot
+ - lk2nd lives in the "boot" partition; the OS boot.img is read from 512k
+   into the same partition, or booted with "fastboot boot".
+ - lk2nd builds the simple-framebuffer node itself when the kernel cmdline has
+   lk2nd.pass-simplefb. The bootloader framebuffer is 720x1280 RGB888,
+   stride 2160: 0x8e000000 on J3 Pro, 0x83200000 on J5/J7.
+
+USB (OTG mode, VBUS from the PMIC/MUIC path, no ID GPIO, no OTG VBUS regulator)
+ - HSUSB 3p3 3.075 V, 1p8 1.8 V.
+ - PHY init-seq (ULPI 0x80 + reg): J3 Pro  0x5f@0x81 0x27@0x82
+                                   J5      0x19@0x81 0x0b@0x82
+                                   J7      0x44@0x80 0x3b@0x81 0x24@0x82 0x13@0x83
+   (0x3b on J7 differs from the 0x6b in msm8939.dtsi.)
+
+Wi-Fi/BT: Pronto, firmware 1.5.1.2, IRIS chip id 0x5112 = WCN3620A on all three.
+
+Panels (LCD_ID / downstream name)
+ - J3 Pro: S6E8AA5X01_AMS497HY01_HD (OLED), supply enable gpio102
+ - J5:     S6D7AA0X62_BV050HDM_HD    (0x59B810), supply gpio16
+ - J7:     S6D7AA0X62_BV050HDM_HD    (0x59B810), supply gpio20 (active high)
+
+Verified live on J7 (screen on): panel gpio20 high, touch supply gpio73 high,
+charger enable gpio33 active low, SD card-detect gpio38, keys gpio107/109,
+NFC pins 21/49/116, LM3632 EN/ENP/ENN = gpio98/50/51, S4 = 2.1 V.
+
+Audio: downstream routing equals the DT (AMIC1/AMIC3 on external bias, AMIC2
+headset on internal bias, speaker through the codec). Samsung uses its own
+headset-detect driver, not MBHC, so jack polarity and thresholds are unverified.
+
+J7 CPU supply: FAN53555 at 0x60 on BLSP4 (vsel gpio111, 1.05-1.35 V) behind
+the CPR regulator. NCP6335D (0x1c) is the alternative part and is not fitted.
+msm8939.dtsi has no CPU OPP/supply yet, so nothing consumes it.
+
+Board revisions: J5 Rev00 has no NFC. J3 Pro Rev02 vs Rev03 differ only in
+proximity sensor thresholds.
+
+Not described (no mainline driver): CM36672P (J3 Pro, J7) and GP2A (J5)
+proximity/light sensors, SM5703 flash LED, NFC BBCLK2 clock.
