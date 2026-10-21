@@ -236,7 +236,6 @@ static int tas2557_i2c_read_device(struct tas2557_priv *pTAS2557,
 	int nResult = 0;
 	unsigned int val = 0;
 
-	pTAS2557->client->addr = addr;
 	nResult = regmap_read(pTAS2557->mpRegmap, reg, &val);
 
 	if (nResult < 0)
@@ -254,7 +253,6 @@ static int tas2557_i2c_write_device(struct tas2557_priv *pTAS2557,
 {
 	int nResult = 0;
 
-	pTAS2557->client->addr = addr;
 	nResult = regmap_write(pTAS2557->mpRegmap, reg, value);
 
 	if (nResult < 0)
@@ -270,7 +268,6 @@ static int tas2557_i2c_update_bits(struct tas2557_priv *pTAS2557,
 {
 	int nResult = 0;
 
-	pTAS2557->client->addr = addr;
 	nResult = regmap_update_bits(pTAS2557->mpRegmap, reg, mask, value);
 
 	if (nResult < 0)
@@ -286,7 +283,6 @@ static int tas2557_i2c_bulkwrite_device(struct tas2557_priv *pTAS2557,
 {
 	int nResult = 0;
 
-	pTAS2557->client->addr = addr;
 	nResult = regmap_bulk_write(pTAS2557->mpRegmap, reg, pBuf, len);
 
 	if (nResult < 0)
@@ -2006,12 +2002,6 @@ int tas2557_register_codec(struct tas2557_priv *pTAS2557)
 	return nResult;
 }
 
-int tas2557_deregister_codec(struct tas2557_priv *pTAS2557)
-{
-	snd_soc_unregister_component(pTAS2557->dev);
-	return 0;
-}
-
 //I2C Driver
 
 static bool tas2557_volatile(struct device *pDev, unsigned int nRegister)
@@ -2107,7 +2097,6 @@ static void tas2557_i2c_remove(struct i2c_client *pClient)
 
 	dev_info(pTAS2557->dev, "%s\n", __func__);
 
-	tas2557_deregister_codec(pTAS2557);
 	mutex_destroy(&pTAS2557->codec_lock);
 
 	mutex_destroy(&pTAS2557->dev_lock);
