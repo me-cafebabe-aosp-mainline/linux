@@ -202,6 +202,18 @@
 	firmware-name = "qcom/msm8953/xiaomi/vince/a506_zap.mdt";
 };
 
+&i2c_2 {
+	/* Speaker smart amplifier, on the Quinary MI2S bus */
+	tas2557_codec: audio-codec@4c {
+		compatible = "ti,tas2557";
+		reg = <0x4c>;
+
+		reset-gpios = <&tlmm 86 GPIO_ACTIVE_LOW>;
+
+		#sound-dai-cells = <0>;
+	};
+};
+
 &i2c_3 {
 	touchscreen@1 {
 		compatible = "novatek,nt36672a-ts";
@@ -271,13 +283,30 @@
 	pinctrl-0 = <&cdc_pdm_lines_default
 		     &cdc_pdm_lines_2_default
 		     &cdc_pdm_comp_lines_default
-		     &pri_mi2s_default>;
+		     &pri_mi2s_default
+		     &pri_mi2s_ws_default>;
 	pinctrl-1 = <&cdc_pdm_lines_sleep
 		     &cdc_pdm_lines_2_sleep
 		     &cdc_pdm_comp_lines_sleep
-		     &pri_mi2s_sleep>;
+		     &pri_mi2s_sleep
+		     &pri_mi2s_ws_default>;
 
 	status = "okay";
+
+	quinary-mi2s-dai-link {
+		link-name = "Quinary MI2S";
+		cpu {
+			sound-dai = <&q6afedai QUINARY_MI2S_RX>;
+		};
+
+		platform {
+			sound-dai = <&q6routing>;
+		};
+
+		codec {
+			sound-dai = <&tas2557_codec>;
+		};
+	};
 };
 
 &tlmm {
