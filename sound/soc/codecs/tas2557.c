@@ -484,7 +484,7 @@ static int tas2557_DevShutdown(struct tas2557_priv *pTAS2557)
 	return nResult;
 }
 
-int tas2557_set_DAC_gain(struct tas2557_priv *pTAS2557, unsigned int nGain)
+static int tas2557_set_DAC_gain(struct tas2557_priv *pTAS2557, unsigned int nGain)
 {
 	int nResult = 0;
 	int gain = (nGain & 0x0f);
@@ -502,7 +502,7 @@ end:
 	return nResult;
 }
 
-int tas2557_get_DAC_gain(struct tas2557_priv *pTAS2557, unsigned char *pnGain)
+static int tas2557_get_DAC_gain(struct tas2557_priv *pTAS2557, unsigned char *pnGain)
 {
 	int nResult = 0;
 	int nGain;
@@ -515,7 +515,7 @@ int tas2557_get_DAC_gain(struct tas2557_priv *pTAS2557, unsigned char *pnGain)
 	return nResult;
 }
 
-int tas2557_DevMute(struct tas2557_priv *pTAS2557, bool mute)
+static int tas2557_DevMute(struct tas2557_priv *pTAS2557, bool mute)
 {
 	int nResult = 0;
 
@@ -530,7 +530,7 @@ int tas2557_DevMute(struct tas2557_priv *pTAS2557, bool mute)
 	return nResult;
 }
 
-int tas2557_load_default(struct tas2557_priv *pTAS2557)
+static int tas2557_load_default(struct tas2557_priv *pTAS2557)
 {
 	int nResult = 0;
 
@@ -560,7 +560,7 @@ end:
 	return nResult;
 }
 
-void tas2557_clear_firmware(struct TFirmware *pFirmware)
+static void tas2557_clear_firmware(struct TFirmware *pFirmware)
 {
 	unsigned int n, nn;
 
@@ -978,7 +978,7 @@ end:
 	return nResult;
 }
 
-int tas2557_set_program(struct tas2557_priv *pTAS2557, unsigned int nProgram,
+static int tas2557_set_program(struct tas2557_priv *pTAS2557, unsigned int nProgram,
 			int nConfig)
 {
 	struct TProgram *pProgram;
@@ -1532,7 +1532,7 @@ static int fw_parse(struct tas2557_priv *pTAS2557, struct TFirmware *pFirmware,
 	return 0;
 }
 
-void tas2557_fw_ready(const struct firmware *pFW, void *pContext)
+static void tas2557_fw_ready(const struct firmware *pFW, void *pContext)
 {
 	struct tas2557_priv *pTAS2557 = (struct tas2557_priv *)pContext;
 	int nResult;
@@ -1590,7 +1590,7 @@ end:
 	mutex_unlock(&pTAS2557->codec_lock);
 }
 
-int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
+static int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 {
 	int nResult = 0;
 	struct TProgram *pProgram;
@@ -1690,7 +1690,7 @@ end:
 	return nResult;
 }
 
-int tas2557_set_sampling_rate(struct tas2557_priv *pTAS2557,
+static int tas2557_set_sampling_rate(struct tas2557_priv *pTAS2557,
 			      unsigned int nSamplingRate)
 {
 	int nResult = 0;
@@ -1747,7 +1747,7 @@ end:
 	return nResult;
 }
 
-int tas2557_set_config(struct tas2557_priv *pTAS2557, int config)
+static int tas2557_set_config(struct tas2557_priv *pTAS2557, int config)
 {
 	struct TConfiguration *pConfiguration;
 	struct TProgram *pProgram;
@@ -1991,7 +1991,7 @@ static struct snd_soc_dai_driver tas2557_dai_driver[] = {
 	},
 };
 
-int tas2557_register_codec(struct tas2557_priv *pTAS2557)
+static int tas2557_register_codec(struct tas2557_priv *pTAS2557)
 {
 	int nResult = 0;
 
