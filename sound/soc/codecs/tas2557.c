@@ -449,8 +449,8 @@ static int tas2557_dev_load_data(struct tas2557_priv *pTAS2557,
 	unsigned int nData;
 
 	do {
-		nRegister = pData[n * 3 + 1];
-		nData = pData[n * 3 + 2];
+		nRegister = pData[n * 2];
+		nData = pData[n * 2 + 1];
 		if (nRegister == TAS2557_UDELAY) {
 			udelay(nData);
 		} else if (nRegister == TAS2557_MDELAY) {
