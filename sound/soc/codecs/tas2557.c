@@ -1612,10 +1612,14 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 						pTAS2557->dev, GFP_KERNEL,
 						pTAS2557, tas2557_fw_ready);
 		if (nResult < 0) {
-			dev_err(pTAS2557->dev, "%s, firmware is loaded\n",
+			dev_err(pTAS2557->dev, "%s, firmware request failed\n",
 				__func__);
 			goto end;
 		}
+
+		/* The firmware is not usable until the callback has run */
+		nResult = -ENODEV;
+		goto end;
 	}
 
 	/* check safe guard*/
