@@ -126,8 +126,13 @@ static int s6e8aa5x01_ams497hy01_unprepare(struct drm_panel *panel)
 	return 0;
 }
 
+/*
+ * The downstream timings (60 Hz, 500 Mbit/s per lane) make the DSI link
+ * produce errors on the J3 Pro (the panel counts DSI errors and the screen
+ * blinks on high-toggle content). 55 Hz (459 Mbit/s) is clean, 58 Hz is not.
+ */
 static const struct drm_display_mode s6e8aa5x01_ams497hy01_mode = {
-	.clock = (720 + 226 + 20 + 100) * (1280 + 14 + 2 + 8) * 60 / 1000,
+	.clock = (720 + 226 + 20 + 100) * (1280 + 14 + 2 + 8) * 55 / 1000,
 	.hdisplay = 720,
 	.hsync_start = 720 + 226,
 	.hsync_end = 720 + 226 + 20,
