@@ -243,16 +243,24 @@ static int imagis_init_input_dev(struct imagis_ts *ts)
 	input_set_capability(input_dev, EV_ABS, ABS_MT_POSITION_X);
 	input_set_capability(input_dev, EV_ABS, ABS_MT_POSITION_Y);
 	input_set_abs_params(input_dev, ABS_MT_TOUCH_MAJOR, 0, 16, 0, 0);
-	if (ts->tdata->touch_keys_supported) {
-		ts->num_keycodes = of_property_read_variable_u32_array(
-				ts->client->dev.of_node, "linux,keycodes",
-				ts->keycodes, 0, ARRAY_SIZE(ts->keycodes));
-		if (ts->num_keycodes <= 0) {
-			ts->keycodes[0] = KEY_APPSELECT;
-			ts->keycodes[1] = KEY_BACK;
-			ts->num_keycodes = 2;
-		}
+	ts->num_keycodes = device_property_count_u32(&ts->client->dev,
+						     "linux,keycodes");
+	if (ts->num_keycodes > 0 && ts->num_keycodes <= ARRAY_SIZE(ts->keycodes)) {
+		error = device_property_read_u32_array(&ts->client->dev,
+						       "linux,keycodes",
+						       ts->keycodes,
+						       ts->num_keycodes);
+		if (error)
+			return error;
+	} else if (ts->tdata->touch_keys_supported) {
+		ts->keycodes[0] = KEY_APPSELECT;
+		ts->keycodes[1] = KEY_BACK;
+		ts->num_keycodes = 2;
+	} else {
+		ts->num_keycodes = 0;
+	}
 
+	if (ts->num_keycodes) {
 		input_dev->keycodemax = ts->num_keycodes;
 		input_dev->keycodesize = sizeof(ts->keycodes[0]);
 		input_dev->keycode = ts->keycodes;
