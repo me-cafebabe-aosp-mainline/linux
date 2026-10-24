@@ -39,7 +39,7 @@
 		#size-cells = <0>;
 
 		touchkey@20 {
-			compatible = "coreriver,tc360-touchkey";
+			compatible = "coreriver,tc300k-touchkey";
 			reg = <0x20>;
 
 			interrupt-parent = <&tlmm>;
