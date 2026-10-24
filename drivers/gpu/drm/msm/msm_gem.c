@@ -51,6 +51,7 @@ static void put_iova_spaces(struct drm_gem_object *obj, struct drm_gpuvm *vm,
 
 static void msm_gem_close(struct drm_gem_object *obj, struct drm_file *file)
 {
+	struct msm_drm_private *priv = obj->dev->dev_private;
 	struct msm_context *ctx = file->driver_priv;
 	struct drm_exec exec;
 
@@ -63,6 +64,17 @@ static void msm_gem_close(struct drm_gem_object *obj, struct drm_file *file)
 	 * down the mappings of shared buffers in other contexts.
 	 */
 	if (!ctx->vm)
+		return;
+
+	/*
+	 * Without per-process pagetables (a2xx-a4xx, or a3xx behind
+	 * qcom_iommu), every context shares the global GPU VM.  A GEM
+	 * object can be shared between contexts via PRIME (ie. gralloc
+	 * buffers), so closing the handle in one context must not tear
+	 * down a mapping still in use by another.  The mapping is torn
+	 * down when the object is freed.
+	 */
+	if (priv->gpu && ctx->vm == priv->gpu->vm)
 		return;
 
 	/*
