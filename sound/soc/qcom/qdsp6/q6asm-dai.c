@@ -71,6 +71,7 @@ struct q6asm_dai_rtd {
 	uint32_t stream_id;
 	uint16_t session_id;
 	enum stream_state state;
+	bool stream_open;
 	uint32_t initial_samples_drop;
 	uint32_t trailing_samples_drop;
 	bool notify_on_drain;
@@ -225,13 +226,14 @@ static int q6asm_dai_prepare(struct snd_soc_component *component,
 
 	prtd->pcm_count = snd_pcm_lib_period_bytes(substream);
 	/* rate and channels are sent to audio driver */
-	if (prtd->state == Q6ASM_STREAM_RUNNING) {
+	if (prtd->stream_open) {
 		/* clear the previous setup if any  */
 		q6asm_cmd(prtd->audio_client, prtd->stream_id, CMD_CLOSE);
 		q6asm_unmap_memory_regions(substream->stream,
 					   prtd->audio_client);
 		q6routing_stream_close(soc_prtd->dai_link->id,
 					 substream->stream);
+		prtd->stream_open = false;
 		prtd->state = Q6ASM_STREAM_STOPPED;
 	}
 
@@ -260,6 +262,7 @@ static int q6asm_dai_prepare(struct snd_soc_component *component,
 		dev_err(dev, "%s: q6asm_open_write failed\n", __func__);
 		goto open_err;
 	}
+	prtd->stream_open = true;
 
 	prtd->session_id = q6asm_get_session_id(prtd->audio_client);
 	ret = q6routing_stream_open(soc_prtd->dai_link->id, LEGACY_PCM_MODE,
@@ -295,6 +298,7 @@ static int q6asm_dai_prepare(struct snd_soc_component *component,
 
 routing_err:
 	q6asm_cmd(prtd->audio_client, prtd->stream_id,  CMD_CLOSE);
+	prtd->stream_open = false;
 open_err:
 	q6asm_unmap_memory_regions(substream->stream, prtd->audio_client);
 	q6asm_audio_client_free(prtd->audio_client);
@@ -457,12 +461,13 @@ static int q6asm_dai_close(struct snd_soc_component *component,
 	struct q6asm_dai_rtd *prtd = runtime->private_data;
 
 	if (prtd->audio_client) {
-		if (prtd->state)
+		if (prtd->stream_open)
 			q6asm_cmd(prtd->audio_client, prtd->stream_id,
 				  CMD_CLOSE);
 
 		q6asm_unmap_memory_regions(substream->stream,
 					   prtd->audio_client);
+		prtd->stream_open = false;
 		q6asm_audio_client_free(prtd->audio_client);
 		prtd->audio_client = NULL;
 	}
