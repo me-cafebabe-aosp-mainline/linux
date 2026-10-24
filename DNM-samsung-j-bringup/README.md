@@ -226,6 +226,40 @@ The secondary mic (AMIC3) is not described because it is unknown whether the pho
 - `patches/downstream-debug-kernel/` – the 2 DEBUG commits for android-3.10
 - `scripts-tmp/` – older copies of the helper scripts
 
+## 8b. Display blinking on high-toggle content (J3 Pro) - investigated, worked around
+
+Symptom (kernels 6.12.1 and 7.0): with the screen mostly filled with colour (noise, solid 0x55 / 0xAA fills) the
+J3 Pro CTC panel blinks and shows artifacts on the right side of the lines. Fills 0x00 / 0x20 / 0x80 / 0xC0 / 0xFF are fine.
+
+Findings:
+- The panel itself reports DSI errors (DCS 0x05 error counter, bit 7 = overflow, a read clears it; DCS 0x0e bit 0
+  "error on DSI"): ~7-11 on black/white fills, 54-78 + overflow on 0x55; reads fail entirely with noise on screen.
+  The DSI controller reports nothing (FIFO_STATUS idle, no ACK/timeout errors), so the link is corrupted on the wire.
+- **The link is marginal at 500 Mbit/s per lane** (4 lanes, RGB888, 83.4 MHz pixel clock, 60 Hz): at 45 Hz (375 Mbit/s)
+  and at 55 Hz (459 Mbit/s) it is clean, at 58 Hz the blinking area shrinks but is still there. The J3 Pro panel
+  (s6e8aa5x01-ams497hy01) is now a 55 Hz mode in the driver.
+- Lane rates at 60 Hz of the other panels: J7 s6d7aa0x62-bv050hdm-j7ltechn 482 (clean at 60 Hz), J5 ili9881c 478,
+  s6d7aa0x62-bv050hdm 482, ili6236s-cpt50 393 (J5 untested; lk2nd selects the panel from the bootloader panel id).
+- Downstream drives the same panel at the same 500 Mbit/s without errors, **the cause of the difference is unknown**.
+  Everything readable matched downstream and made no difference: DSI controller/PHY registers (read through the
+  downstream debugfs `/sys/kernel/debug/mdp/dsi0_{ctrl,phy}_{off,reg}`), PHY timing, regulator ctrl, drive strength,
+  PLL static registers, MDP INTF timing, MDP clock (80 MHz downstream vs 320 MHz), memory bandwidth votes
+  (interconnect), S4 at 2.1 V ("vddb"), regulator load votes on L2/L6, programmable fetch, RGB vs DMA pipe,
+  panel init sequence, clock lane forced to HS only after the panel init (samsung_lp11_init), CPU idle states.
+- Things worth knowing:
+  - Downstream's per-lane LN_CFG_4 = 0/5/10/15 **blanks the J7 screen** on mainline (J7 is fine with 0); it did not
+    help the J3 Pro either.
+  - The MSM8939 MDP master is under the `snoc_mm` interconnect provider (`&snoc` gives a path that never resolves and
+    the MDP probe defers forever: "of_icc_get_by_index: invalid path=-517").
+  - `CONFIG_INTERCONNECT_QCOM=y` is needed, the msm8916/39 driver options are silently dropped without it.
+  - Downstream debugfs: `/sys/kernel/debug/mdp/off` takes "<hex offset without 0x> <decimal byte count>", offsets are
+    mainline + 0x1000; PLL registers cannot be read (only ctrl/phy are exposed).
+- The experiments (runtime module parameters for the PHY / MDP / DSI / panel, DSI error counter read, MDP register
+  dump, the error counter scripts) were removed from the main branch; they are preserved on the branch
+  `msm8916/7.0-display-debug` and the tag `backup/display-debug-20261024`.
+- Open: why downstream is clean at 500 Mbit/s (analog / timing effect not visible in any register), J5 and J3 Pro Open
+  untested.
+
 ## 9. Open items / unknowns
 
 - Nothing from the mainline side has been booted on hardware yet.
