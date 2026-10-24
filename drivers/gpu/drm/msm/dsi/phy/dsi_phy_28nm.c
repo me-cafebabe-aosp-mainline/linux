@@ -125,6 +125,7 @@ static int dsi_pll_28nm_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 	u32 sdm_cfg0, sdm_cfg1, sdm_cfg2, sdm_cfg3;
 	u32 cal_cfg10, cal_cfg11;
 	u32 rem;
+	bool lp;
 	int i;
 
 	VERB("rate=%lu, parent's=%lu", rate, parent_rate);
@@ -199,7 +200,9 @@ static int dsi_pll_28nm_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	writel(0x02, base + REG_DSI_28nm_PHY_PLL_CHGPUMP_CFG);
 	writel(0x2b, base + REG_DSI_28nm_PHY_PLL_CAL_CFG3);
-	writel(0x06, base + REG_DSI_28nm_PHY_PLL_CAL_CFG4);
+	/* The LP PLL (msm8916/msm8939) uses different values than the HPM one downstream */
+	lp = pll_28nm->phy->cfg->quirks & DSI_PHY_28NM_QUIRK_PHY_LP;
+	writel(lp ? 0x66 : 0x06, base + REG_DSI_28nm_PHY_PLL_CAL_CFG4);
 	writel(0x0d, base + REG_DSI_28nm_PHY_PLL_LKDET_CFG2);
 
 	writel(sdm_cfg1, base + REG_DSI_28nm_PHY_PLL_SDM_CFG1);
@@ -217,7 +220,7 @@ static int dsi_pll_28nm_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	writel(refclk_cfg, base + REG_DSI_28nm_PHY_PLL_REFCLK_CFG);
 	writel(0x00, base + REG_DSI_28nm_PHY_PLL_PWRGEN_CFG);
-	writel(0x31, base + REG_DSI_28nm_PHY_PLL_VCOLPF_CFG);
+	writel(lp ? 0x71 : 0x31, base + REG_DSI_28nm_PHY_PLL_VCOLPF_CFG);
 	writel(sdm_cfg0, base + REG_DSI_28nm_PHY_PLL_SDM_CFG0);
 	writel(0x12, base + REG_DSI_28nm_PHY_PLL_CAL_CFG0);
 	writel(0x30, base + REG_DSI_28nm_PHY_PLL_CAL_CFG6);
