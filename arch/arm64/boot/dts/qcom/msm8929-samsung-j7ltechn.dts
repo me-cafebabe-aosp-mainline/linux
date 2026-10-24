@@ -6,6 +6,7 @@
 #include "msm8916-modem-qdsp6.dtsi"
 #include "msm8916-samsung-sm5703.dtsi"
 
+#include <dt-bindings/arm/qcom,ids.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/interrupt-controller/irq.h>
@@ -14,6 +15,9 @@
 	model = "Samsung Galaxy J7 (2015) (SM-J7008)";
 	compatible = "samsung,j7ltechn", "qcom,msm8929";
 	chassis-type = "handset";
+
+	qcom,msm-id = <QCOM_ID_MSM8929 0>;
+	qcom,board-id = <0x0c01ff01 4>;
 
 	aliases {
 		mmc0 = &sdhc_1; /* eMMC */

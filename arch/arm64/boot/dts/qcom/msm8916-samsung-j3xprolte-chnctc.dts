@@ -4,10 +4,15 @@
 
 #include "msm8916-samsung-j3xprolte-common.dtsi"
 
+#include <dt-bindings/arm/qcom,ids.h>
+
 / {
 	model = "Samsung Galaxy J3 Pro (SM-J3119)";
 	compatible = "samsung,j3xprolte-chnctc", "qcom,msm8916";
 	chassis-type = "handset";
+
+	qcom,msm-id = <QCOM_ID_MSM8916 0>;
+	qcom,board-id = <0xce08ff01 3>;
 };
 
 &usb_hs_phy {

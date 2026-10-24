@@ -1219,7 +1219,9 @@ allOf:
               - qcom,apq8026
               - qcom,apq8094
               - qcom,apq8096
+              - qcom,msm8916
               - qcom,msm8917
+              - qcom,msm8929
               - qcom,msm8937
               - qcom,msm8939
               - qcom,msm8953
