@@ -156,6 +156,8 @@
 		touchscreen-size-x = <720>;
 		touchscreen-size-y = <1280>;
 
+		linux,keycodes = <KEY_APPSELECT>, <KEY_BACK>;
+
 		vddio-supply = <&pm8916_l6>;
 
 		pinctrl-0 = <&tsp_int_default>;
